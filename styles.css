@@ -946,6 +946,25 @@ details p {
   display: none;
 }
 
+.form-status.is-success {
+  border-left-color: var(--green-700);
+  background: var(--green-100);
+}
+
+.form-status.is-error {
+  border-left-color: #a62b2b;
+  background: #fff0f0;
+  color: #7f1d1d;
+}
+
+.form-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
 .site-footer {
   color: rgba(255, 255, 255, 0.78);
   background: var(--green-950);

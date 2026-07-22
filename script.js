@@ -62,25 +62,41 @@ document.querySelector(".quote-form")?.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const status = form.querySelector("[data-form-status]");
-  const data = new FormData(form);
-  const subject = `Quote request from ${data.get("name")}`;
-  const body = [
-    `Full name: ${data.get("name")}`,
-    `Company: ${data.get("company") || "Not provided"}`,
-    `Phone: ${data.get("phone")}`,
-    `Email: ${data.get("email")}`,
-    `Service needed: ${data.get("service")}`,
-    `Property type: ${data.get("property-type")}`,
-    `Cleaning frequency: ${data.get("frequency")}`,
-    `Preferred contact method: ${data.get("preferred-contact")}`,
-    "",
-    "Message:",
-    data.get("message") || "No additional details provided."
-  ].join("\n");
+  const button = form.querySelector("button[type='submit']");
+  const originalText = button.textContent;
 
   if (status) {
-    status.textContent = "Your email app is opening. Review the message, then send it to complete your request.";
+    status.textContent = "Sending your quote request...";
+    status.classList.remove("is-error", "is-success");
   }
 
-  window.location.href = `mailto:info@dmafacilitycare.ca?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  button.disabled = true;
+  button.textContent = "Sending...";
+
+  fetch(form.action, {
+    method: "POST",
+    body: new FormData(form),
+    headers: { Accept: "application/json" }
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("The quote request could not be sent.");
+      }
+
+      form.reset();
+      if (status) {
+        status.textContent = "Thank you. Your quote request has been sent to DMA Facility Care.";
+        status.classList.add("is-success");
+      }
+    })
+    .catch(() => {
+      if (status) {
+        status.textContent = "We could not send your request. Please try again or call 647-556-6948.";
+        status.classList.add("is-error");
+      }
+    })
+    .finally(() => {
+      button.disabled = false;
+      button.textContent = originalText;
+    });
 });

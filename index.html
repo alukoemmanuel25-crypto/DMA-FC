@@ -438,7 +438,8 @@
             </div>
           </div>
 
-          <form class="quote-form" name="quote-request" aria-label="Quote request form">
+          <form class="quote-form" id="quote-form" name="quote-request" action="https://formspree.io/f/mzdnazad" method="post" aria-label="Quote request form">
+            <input class="form-honeypot" type="text" name="_gotcha" tabindex="-1" autocomplete="off" aria-hidden="true">
             <label for="quote-name">
               Full Name
               <input id="quote-name" type="text" name="name" autocomplete="name" required>
@@ -505,7 +506,7 @@
             </label>
             <button class="button button-primary full" type="submit">Request My Free Quote</button>
             <p class="form-status full" data-form-status role="status" aria-live="polite"></p>
-            <p class="form-note full">Submitting opens your email app with the quote details ready to send. No pressure. No obligation.</p>
+            <p class="form-note full">Your information is sent securely to DMA Facility Care. No pressure. No obligation.</p>
           </form>
         </div>
       </section>
