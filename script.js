@@ -2,6 +2,14 @@ const header = document.querySelector("[data-header]");
 const navToggle = document.querySelector("[data-nav-toggle]");
 const navMenu = document.querySelector("[data-nav-menu]");
 const year = document.querySelector("[data-year]");
+const quoteForm = document.querySelector(".quote-form");
+const quoteDraftKey = "dma-quote-draft";
+
+const trackEvent = (name, parameters = {}) => {
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({ event: name, ...parameters });
+  window.dispatchEvent(new CustomEvent("dma:track", { detail: { name, parameters } }));
+};
 
 if (year) {
   year.textContent = new Date().getFullYear();
@@ -37,28 +45,42 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-const animatedItems = document.querySelectorAll(".feature-card, .service-card, .standard-steps article, .industry-grid span, .process-grid article, .review-card, .commitment-card, details");
-animatedItems.forEach((item) => item.setAttribute("data-animate", ""));
+document.querySelectorAll("a[href^='tel:']").forEach((link) => {
+  link.addEventListener("click", () => trackEvent("phone_click", { link_url: link.href }));
+});
 
-if ("IntersectionObserver" in window) {
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add("is-visible");
-          observer.unobserve(entry.target);
-        }
-      });
-    },
-    { threshold: 0.12 }
-  );
+document.querySelectorAll("a[href^='mailto:']").forEach((link) => {
+  link.addEventListener("click", () => trackEvent("email_click", { link_url: link.href }));
+});
 
-  animatedItems.forEach((item) => observer.observe(item));
-} else {
-  animatedItems.forEach((item) => item.classList.add("is-visible"));
+document.querySelectorAll("[data-track='free_walkthrough_click']").forEach((link) => {
+  link.addEventListener("click", () => trackEvent("free_walkthrough_click"));
+});
+
+if (quoteForm) {
+  try {
+    const draft = JSON.parse(sessionStorage.getItem(quoteDraftKey) || "{}");
+    Object.entries(draft).forEach(([name, value]) => {
+      const field = quoteForm.elements.namedItem(name);
+      if (field && typeof value === "string") field.value = value;
+    });
+  } catch {
+    sessionStorage.removeItem(quoteDraftKey);
+  }
+
+  const saveQuoteDraft = () => {
+    const draft = Object.fromEntries(new FormData(quoteForm).entries());
+    sessionStorage.setItem(quoteDraftKey, JSON.stringify(draft));
+  };
+  quoteForm.addEventListener("input", saveQuoteDraft);
+  quoteForm.addEventListener("change", saveQuoteDraft);
 }
 
-document.querySelector(".quote-form")?.addEventListener("submit", (event) => {
+if (window.location.pathname.includes("cleaning-london-ontario")) {
+  trackEvent("service_page_view", { page_path: window.location.pathname });
+}
+
+quoteForm?.addEventListener("submit", (event) => {
   event.preventDefault();
   const form = event.currentTarget;
   const status = form.querySelector("[data-form-status]");
@@ -84,6 +106,8 @@ document.querySelector(".quote-form")?.addEventListener("submit", (event) => {
       }
 
       form.reset();
+      sessionStorage.removeItem(quoteDraftKey);
+      trackEvent("quote_form_submit", { form_id: form.id });
       if (status) {
         status.textContent = "Thank you. Your quote request has been sent to DMA Facility Care.";
         status.classList.add("is-success");
